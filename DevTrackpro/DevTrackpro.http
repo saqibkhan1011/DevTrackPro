@@ -1,0 +1,6 @@
+@DevTrackpro_HostAddress = http://localhost:5034
+
+GET {{DevTrackpro_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
