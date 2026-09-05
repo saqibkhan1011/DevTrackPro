@@ -1,3 +1,4 @@
+using DevTrackPro.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DevTrackPro.Controllers;
@@ -6,16 +7,18 @@ namespace DevTrackPro.Controllers;
 [Route("api/[controller]")]
 public class EmployeesController : ControllerBase
 {
+    private readonly IEmployeeService _employeeService;
+
+    // The DI container automatically supplies IEmployeeService here
+    public EmployeesController(IEmployeeService employeeService)
+    {
+        _employeeService = employeeService;
+    }
+
     [HttpGet]
     public IActionResult GetEmployees()
     {
-        // Returning hardcoded data until we implement our database
-        var employees = new[]
-        {
-            new { Id = 1, Name = "Saqib Khan", Role = "Software Engineer" },
-            new { Id = 2, Name = "Jane Doe", Role = "Project Manager" }
-        };
-
-        return Ok(employees); // Returns an HTTP 200 with the data
+        var employees = _employeeService.GetAllEmployees();
+        return Ok(employees);
     }
 }
