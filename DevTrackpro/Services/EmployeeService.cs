@@ -1,15 +1,27 @@
+using DevTrackPro.Data;
 using DevTrackPro.DTOs;
+using Microsoft.EntityFrameworkCore;
 
 namespace DevTrackPro.Services;
 
 public class EmployeeService : IEmployeeService
 {
-    public IEnumerable<EmployeeDto> GetAllEmployees()
+    private readonly DevTrackDbContext _context;
+
+    public EmployeeService(DevTrackDbContext context)
     {
-        return new List<EmployeeDto>
-        {
-            new EmployeeDto { Id = 1, Name = "Saqib Khan", Role = "Software Engineer" },
-            new EmployeeDto { Id = 2, Name = "Jane Doe", Role = "Project Manager" }
-        };
+        _context = context;
+    }
+
+    public async Task<IEnumerable<EmployeeDto>> GetAllEmployeesAsync()
+    {
+        return await _context.Employees
+            .Select(e => new EmployeeDto
+            {
+                Id = e.Id,
+                Name = e.Name,
+                Role = e.Role
+            })
+            .ToListAsync();
     }
 }

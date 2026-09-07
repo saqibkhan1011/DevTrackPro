@@ -4,5 +4,5 @@ namespace DevTrackPro.Services;
 
 public interface IEmployeeService
 {
-    IEnumerable<EmployeeDto> GetAllEmployees();
+    Task<IEnumerable<EmployeeDto>> GetAllEmployeesAsync();
 }
