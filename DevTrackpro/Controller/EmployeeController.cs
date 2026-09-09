@@ -1,9 +1,11 @@
 using DevTrackPro.DTOs;
 using DevTrackPro.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DevTrackPro.Controllers;
 
+[Authorize] // Enforces JWT Authentication for ALL endpoints in this controller
 [ApiController]
 [Route("api/[controller]")]
 public class EmployeesController : ControllerBase
@@ -35,8 +37,6 @@ public class EmployeesController : ControllerBase
     public async Task<IActionResult> CreateEmployee([FromBody] CreateEmployeeDto dto)
     {
         var createdEmployee = await _employeeService.CreateEmployeeAsync(dto);
-        
-        // Returns HTTP 201 Created with a Location header pointing to api/employees/{id}
         return CreatedAtAction(nameof(GetEmployeeById), new { id = createdEmployee.Id }, createdEmployee);
     }
 
@@ -46,7 +46,7 @@ public class EmployeesController : ControllerBase
         var updated = await _employeeService.UpdateEmployeeAsync(id, dto);
         if (!updated) return NotFound();
 
-        return NoContent(); // HTTP 204
+        return NoContent();
     }
 
     [HttpDelete("{id:int}")]
@@ -55,6 +55,6 @@ public class EmployeesController : ControllerBase
         var deleted = await _employeeService.DeleteEmployeeAsync(id);
         if (!deleted) return NotFound();
 
-        return NoContent(); // HTTP 204
+        return NoContent();
     }
 }
