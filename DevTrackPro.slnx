@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="DevTrackPro.Tests/DevTrackPro.Tests.csproj" />
+  <Project Path="DevTrackpro/DevTrackpro.csproj" />
+</Solution>
