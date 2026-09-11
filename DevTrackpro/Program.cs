@@ -55,6 +55,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();
 
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 // Custom Middleware
 app.UseMiddleware<RequestTimingMiddleware>();
 
