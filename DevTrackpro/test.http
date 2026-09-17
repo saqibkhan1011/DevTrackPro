@@ -1,0 +1,23 @@
+@host = http://localhost:5034
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjNlY2UxYTU1LWRiOWQtNDI3Yi04YTc2LTQ2MmI1YWU5MzJiYSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6ImFkbWluQGRldnRyYWNrcHJvLmNvbSIsImp0aSI6IjBjMjFhNTQ0LTMzNWItNDMzMy1iZjg3LTc5YTBjYzY2ZDJiNCIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwiZXhwIjoxNzg5NjY3OTQyLCJpc3MiOiJEZXZUcmFja1Byb0FwaSIsImF1ZCI6IkRldlRyYWNrUHJvQ2xpZW50In0.HZ8uIzJgFEimunkP5xQ_YUHC9K1k27p_q1EY4mn8ptU
+
+### 1. Login to get the JWT
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@devtrackpro.com",
+  "password": "Admin@123456!"
+}
+
+### 2. Get Departments (Requires Admin/User Role)
+GET {{host}}/api/departments
+Authorization: Bearer {{token}}
+### 3. Create a Department (Requires Admin Role)
+POST {{host}}/api/departments
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Research and Development"
+}

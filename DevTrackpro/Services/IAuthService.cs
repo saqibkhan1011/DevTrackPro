@@ -1,9 +1,10 @@
 using DevTrackPro.DTOs;
-
+using Microsoft.AspNetCore.Identity;
 namespace DevTrackPro.Services;
 
 public interface IAuthService
 {
-    Task<AuthResponseDto> RegisterAsync(RegisterDto dto);
-    Task<AuthResponseDto> LoginAsync(LoginDto dto);
+    Task<IdentityResult> RegisterAsync(RegisterDto dto);
+    Task<string?> LoginAsync(LoginDto dto);
+    Task<string> GenerateJwtTokenAsync(IdentityUser user);
 }

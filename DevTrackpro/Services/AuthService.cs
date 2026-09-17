@@ -10,22 +10,16 @@ namespace DevTrackPro.Services;
 public class AuthService : IAuthService
 {
     private readonly UserManager<IdentityUser> _userManager;
-    private readonly IConfiguration _configuration;
+    private readonly IConfiguration _config;
 
-    public AuthService(UserManager<IdentityUser> userManager, IConfiguration configuration)
+    public AuthService(UserManager<IdentityUser> userManager, IConfiguration config)
     {
         _userManager = userManager;
-        _configuration = configuration;
+        _config = config;
     }
 
-    public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
+    public async Task<IdentityResult> RegisterAsync(RegisterDto dto)
     {
-        var existingUser = await _userManager.FindByEmailAsync(dto.Email);
-        if (existingUser != null)
-        {
-            return new AuthResponseDto { IsSuccess = false, Message = "User with this email already exists." };
-        }
-
         var user = new IdentityUser
         {
             UserName = dto.Email,
@@ -33,43 +27,64 @@ public class AuthService : IAuthService
         };
 
         var result = await _userManager.CreateAsync(user, dto.Password);
-        if (!result.Succeeded)
+        if (result.Succeeded)
         {
-            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-            return new AuthResponseDto { IsSuccess = false, Message = errors };
+            // Assign the default "User" role upon registration
+            await _userManager.AddToRoleAsync(user, "User");
         }
 
-        return new AuthResponseDto { IsSuccess = true, Message = "User registered successfully!" };
+        return result;
     }
 
-    public async Task<AuthResponseDto> LoginAsync(LoginDto dto)
+    public async Task<string?> LoginAsync(LoginDto dto)
     {
         var user = await _userManager.FindByEmailAsync(dto.Email);
-        if (user == null || !await _userManager.CheckPasswordAsync(user, dto.Password))
+        if (user == null)
         {
-            return new AuthResponseDto { IsSuccess = false, Message = "Invalid email or password." };
+            return null;
         }
 
-        var token = GenerateJwtToken(user);
-        return new AuthResponseDto { IsSuccess = true, Message = "Login successful!", Token = token };
+        var isPasswordValid = await _userManager.CheckPasswordAsync(user, dto.Password);
+        if (!isPasswordValid)
+        {
+            return null;
+        }
+
+        return await GenerateJwtTokenAsync(user);
     }
 
-    private string GenerateJwtToken(IdentityUser user)
+    public async Task<string> GenerateJwtTokenAsync(IdentityUser user)
     {
-        var claims = new[]
+        var roles = await _userManager.GetRolesAsync(user);
+
+        var claims = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id),
-            new Claim(ClaimTypes.Email, user.Email!)
+            new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
+        foreach (var role in roles)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, role));
+        }
+
+        var secretKey = _config["Jwt:Key"] 
+            ?? throw new InvalidOperationException("JWT Key 'Jwt:Key' is missing in configuration.");
+
+        if (Encoding.UTF8.GetByteCount(secretKey) < 32)
+        {
+            throw new InvalidOperationException("JWT Key must be at least 256 bits (32 characters) long.");
+        }
+
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
-            issuer: _configuration["Jwt:Issuer"],
-            audience: _configuration["Jwt:Audience"],
+            issuer: _config["Jwt:Issuer"],
+            audience: _config["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.AddHours(2),
+            expires: DateTime.UtcNow.AddHours(8),
             signingCredentials: creds
         );
 

@@ -19,17 +19,23 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Register([FromBody] RegisterDto dto)
     {
         var result = await _authService.RegisterAsync(dto);
-        if (!result.IsSuccess) return BadRequest(result);
+        if (!result.Succeeded) // IdentityResult uses .Succeeded
+        {
+            return BadRequest(result.Errors);
+        }
 
-        return Ok(result);
+        return Ok(new { Message = "User registered successfully" });
     }
 
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginDto dto)
     {
-        var result = await _authService.LoginAsync(dto);
-        if (!result.IsSuccess) return Unauthorized(result);
+        var token = await _authService.LoginAsync(dto);
+        if (token == null) // LoginAsync returns string? (null on invalid credentials)
+        {
+            return Unauthorized(new { Message = "Invalid credentials" });
+        }
 
-        return Ok(result);
+        return Ok(new { Token = token });
     }
 }

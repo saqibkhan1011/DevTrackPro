@@ -9,9 +9,21 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Register CORS policy
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp", policy =>
+    {
+        policy.SetIsOriginAllowed(origin => true) // Allows any local origin (5173, 5174, etc.)
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
+
 // 1. Add Controllers
 builder.Services.AddControllers();
-
+builder.Services.AddEndpointsApiExplorer();
 // 2. Add DbContext
 builder.Services.AddDbContext<DevTrackDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -52,13 +64,19 @@ builder.Services.AddAuthentication(options =>
 // 5. Register Services in DI
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IDepartmentService, DepartmentService>();
 
 var app = builder.Build();
-
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    await DbSeeder.SeedRolesAndAdminAsync(services);
+}
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+
 // Custom Middleware
 app.UseMiddleware<RequestTimingMiddleware>();
-
+app.UseCors("AllowReactApp");
 // Standard ASP.NET Core Middleware Pipeline
 app.UseAuthentication(); // First: Verify WHO the user is
 app.UseAuthorization();  // Second: Verify WHAT they can access

@@ -18,6 +18,7 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "Admin,User")]
     public async Task<IActionResult> GetEmployees()
     {
         var employees = await _employeeService.GetAllEmployeesAsync();
@@ -34,6 +35,7 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreateEmployee([FromBody] CreateEmployeeDto dto)
     {
         var createdEmployee = await _employeeService.CreateEmployeeAsync(dto);
@@ -50,6 +52,7 @@ public class EmployeesController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteEmployee(int id)
     {
         var deleted = await _employeeService.DeleteEmployeeAsync(id);
